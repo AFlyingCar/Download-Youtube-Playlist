@@ -6,28 +6,40 @@ function invalidArgs(){
 }
 
 function helpAndExit(){
-    echo "dlYTPlaylist [OPTIONS] ... [SAVE DIRECTORY] ... [URL]"
-    echo "    -h       Display this message and exit"
-    echo "    -s       Number in the playlist to start with"
+    echo "dlYTPlaylist [OPTIONS]"
+    echo "    -h       Display this message and exit."
+    echo "    -s       Number in the playlist to start with."
+    echo "    -m       Create a metadata file which stores the original URL."
+    echo "    -u       The URL to use."
+    echo "    -d       The directory to save to."
     exit 1;
 }
 
+docreatemeta=1
+
 if [[ "$#" -lt 1 ]]; then
     invalidArgs
-elif [[ "$1" = "-h" ]]; then
-    helpAndExit
-elif [[ "$1" = "-s" ]]; then
-    if [[ "$#" -lt 4 ]]; then
-        invalidArgs
-    fi
-    pstart="$2"
-    dlpath="$3"
-    url="$4"
-else
-    pstart=1
-    dlpath="$1"
-    url="$2"
 fi
+
+all_args=("$@")
+
+for ((index=0; index <= "$#"; index++)); do
+    arg=${all_args[index]}
+    if [[ "$arg" = "-h" ]]; then
+        helpAndExit
+    elif [[ "$arg" = "-s" ]]; then
+        if [[ "$#" -lt 4 ]]; then
+            invalidArgs
+        fi
+        pstart="${all_args[++index]}"
+    elif [[ "$arg" = "-m" ]]; then
+        docreatemeta=0
+    elif [[ "$arg" = "-u" ]]; then
+        url="${all_args[++index]}"
+    elif [[ "$arg" = "-d" ]]; then
+        dlpath="${all_args[++index]}"
+    fi
+done
 
 test -d "$dlpath" || mkdir -p "$dlpath"
 
@@ -54,5 +66,9 @@ done
 rm "$dlpath"/*.m4a || { exit 1; };
 rm "$dlpath"/*.m4a.wav || { exit 1; };
 
-# TODO: Add metaData file (holds Playlist URL)
+if [[ "$docreatemeta" ]]; then
+    echo "Writing Metadata file..."
+    touch "$dlpath"/META.info
+    echo "$url" > "$dlpath"/META.info
+fi
  
