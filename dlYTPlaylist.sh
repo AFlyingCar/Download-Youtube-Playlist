@@ -22,6 +22,8 @@ if [[ "$#" -lt 1 ]]; then
 fi
 
 all_args=("$@")
+dlpath=1
+url=1
 
 for ((index=0; index <= "$#"; index++)); do
     arg=${all_args[index]}
@@ -40,6 +42,10 @@ for ((index=0; index <= "$#"; index++)); do
         dlpath="${all_args[++index]}"
     fi
 done
+
+if [[ "$dlpath" -eq 1 || "$url" -eq 1 ]]; then
+    invalidArgs
+fi
 
 test -d "$dlpath" || mkdir -p "$dlpath"
 
