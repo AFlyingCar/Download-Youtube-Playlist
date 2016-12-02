@@ -38,11 +38,18 @@ for ((index=0; index <= "$#"; index++)); do
     fi
 done
 
-if [[ "$dlpath" -eq 1 || "$url" -eq 1 ]]; then
+if [[ "$dlpath" -eq 1 ]]; then
     invalidArgs
 fi
 
 test -d "$dlpath" || mkdir -p "$dlpath"
+
+if [ -f "$dlpath"/META.info ];
+then
+    url=`cat "$dlpath"/META.info`
+else
+    invalidArgs
+fi
 
 echo "Beginning download"
 youtube-dl -i -x --download-archive "$dlpath/archive.txt" -o "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
