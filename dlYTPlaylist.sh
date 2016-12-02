@@ -8,10 +8,9 @@ function invalidArgs(){
 function helpAndExit(){
     echo "dlYTPlaylist [OPTIONS]"
     echo "    -h       Display this message and exit."
-    echo "    -s       Number in the playlist to start with."
     echo "    -m       Create a metadata file which stores the original URL."
-    echo "    -u       The URL to use."
-    echo "    -d       The directory to save to."
+    echo "    -u [URL] The URL to use."
+    echo "    -d [DIR] The directory to save to."
     exit 1;
 }
 
@@ -24,16 +23,12 @@ fi
 all_args=("$@")
 dlpath=1
 url=1
+pstart=1
 
 for ((index=0; index <= "$#"; index++)); do
     arg=${all_args[index]}
     if [[ "$arg" = "-h" ]]; then
         helpAndExit
-    elif [[ "$arg" = "-s" ]]; then
-        if [[ "$#" -lt 4 ]]; then
-            invalidArgs
-        fi
-        pstart="${all_args[++index]}"
     elif [[ "$arg" = "-m" ]]; then
         docreatemeta=0
     elif [[ "$arg" = "-u" ]]; then
@@ -50,7 +45,7 @@ fi
 test -d "$dlpath" || mkdir -p "$dlpath"
 
 echo "Beginning download"
-youtube-dl -x --playlist-start "$pstart" -o "$dlpath/%(title)s-%(id)s.%(ext)s" "$url" || { exit 1; };
+youtube-dl -i -x --download-archive "$dlpath/archive.txt" -o "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
 
 echo "Converting all files to wav format..."
 for i in "$dlpath"/*.m4a; do 
