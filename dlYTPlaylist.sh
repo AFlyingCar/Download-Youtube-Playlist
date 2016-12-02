@@ -16,12 +16,8 @@ function helpAndExit(){
 
 docreatemeta=1
 
-if [[ "$#" -lt 1 ]]; then
-    invalidArgs
-fi
-
 all_args=("$@")
-dlpath=1
+dlpath=`pwd`
 url=1
 pstart=1
 
@@ -38,16 +34,13 @@ for ((index=0; index <= "$#"; index++)); do
     fi
 done
 
-if [[ "$dlpath" -eq 1 ]]; then
-    invalidArgs
-fi
-
 test -d "$dlpath" || mkdir -p "$dlpath"
 
 if [ -f "$dlpath"/META.info ];
 then
     url=`cat "$dlpath"/META.info`
 else
+    echo "Unable to find a META.info file in $dlpath. Please create one with a valid URL in it or specify the URL."
     invalidArgs
 fi
 
