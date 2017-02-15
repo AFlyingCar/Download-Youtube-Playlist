@@ -18,7 +18,7 @@ docreatemeta=1
 
 all_args=("$@")
 dlpath=`pwd`
-url=1
+url="1"
 pstart=1
 
 for ((index=0; index <= "$#"; index++)); do
@@ -36,12 +36,20 @@ done
 
 test -d "$dlpath" || mkdir -p "$dlpath"
 
-if [ -f "$dlpath"/META.info ];
-then
-    url=`cat "$dlpath"/META.info`
-else
-    echo "Unable to find a META.info file in $dlpath. Please create one with a valid URL in it or specify the URL."
-    invalidArgs
+if [[ "$url" = "1" ]]; then
+    if [ -f "$dlpath"/META.info ];
+    then
+        url=`cat "$dlpath"/META.info`
+    else
+        echo "Unable to find a META.info file in $dlpath. Please create one with a valid URL in it or specify the URL."
+        invalidArgs
+    fi
+fi
+
+if [[ "$docreatemeta" ]]; then
+    echo "Writing Metadata file..."
+    touch "$dlpath"/META.info
+    echo "$url" > "$dlpath"/META.info
 fi
 
 echo "Beginning download"
@@ -67,9 +75,3 @@ done
 rm "$dlpath"/*.m4a || { exit 1; };
 rm "$dlpath"/*.m4a.wav || { exit 1; };
 
-if [[ "$docreatemeta" ]]; then
-    echo "Writing Metadata file..."
-    touch "$dlpath"/META.info
-    echo "$url" > "$dlpath"/META.info
-fi
- 
