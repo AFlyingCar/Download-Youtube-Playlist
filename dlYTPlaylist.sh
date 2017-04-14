@@ -3,6 +3,7 @@
 function invalidArgs(){
     echo "Invalid number of arguments."
     helpAndExit
+    exit 1;
 }
 
 function helpAndExit(){
@@ -11,10 +12,9 @@ function helpAndExit(){
     echo "    -m       Create a metadata file which stores the original URL."
     echo "    -u [URL] The URL to use."
     echo "    -d [DIR] The directory to save to."
-    exit 1;
 }
 
-docreatemeta=1
+docreatemeta="0"
 
 all_args=("$@")
 dlpath=`pwd`
@@ -25,8 +25,9 @@ for ((index=0; index <= "$#"; index++)); do
     arg=${all_args[index]}
     if [[ "$arg" = "-h" ]]; then
         helpAndExit
+        exit 0;
     elif [[ "$arg" = "-m" ]]; then
-        docreatemeta=0
+        docreatemeta="1"
     elif [[ "$arg" = "-u" ]]; then
         url="${all_args[++index]}"
     elif [[ "$arg" = "-d" ]]; then
@@ -46,7 +47,7 @@ if [[ "$url" = "1" ]]; then
     fi
 fi
 
-if [[ "$docreatemeta" ]]; then
+if [[ "$docreatemeta"  = "1" ]]; then
     echo "Writing Metadata file..."
     touch "$dlpath"/META.info
     echo "$url" > "$dlpath"/META.info
