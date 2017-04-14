@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fts.h>
 #include <cstdlib>
+#include <cstring>
 
 bool docreatemeta = false;
 std::string dlpath = ".";
@@ -30,12 +31,15 @@ int ffmpeg(std::string file) {
     return 0;
 }
 
-int FileHelper(int x, char * const argv[]) {
+int FileHelper(int x/*, char * const argv*/) {
     FTS *ftsp;
     FTSENT *p, *chp;
+    char *aoeuaoeuoaeuaoeuaoeuaoeu = new char [dlpath.length() + 1];
+    std::strcpy(aoeuaoeuoaeuaoeuaoeuaoeu, dlpath.c_str());
+    char * const argvs[] = { aoeuaoeuoaeuaoeuaoeuaoeu, NULL };
     int fts_options = FTS_COMFOLLOW | FTS_LOGICAL | FTS_NOCHDIR;
     
-    if ((ftsp = fts_open(argv, fts_options, NULL)) == NULL) {
+    if ((ftsp = fts_open(argvs, fts_options, NULL)) == NULL) {
         return 1;
     }
 
@@ -46,7 +50,7 @@ int FileHelper(int x, char * const argv[]) {
 
     std::string file;
 
-    while (fts_read(ftsp)) {
+    while (p = fts_read(ftsp)) {
         file = p->fts_path;
         switch (p->fts_info) {
             case FTS_D:
@@ -153,7 +157,7 @@ int main(int argc, char **argv) {
     args += "/%(title)s-v=%(id)s.%(ext)s\" \"";
     args += url;
     args += "\"";
-    if (system(args.c_str()) == -2) {
+    if (system(args.c_str())) {
         std::cerr << "You have to have youtube-dl installed." << std::endl
                   << "Download it from: https://rg3.github.io/youtube-dl/"
                   << "download.html" << std::endl;
@@ -161,7 +165,7 @@ int main(int argc, char **argv) {
     }
 
     std::cout << "Converting all files to MP3 format..." << std::endl;
-    switch (FileHelper(0, argv)) {
+    switch (FileHelper(0/*, argv*/)) {
         case 1:
             std::cerr << "A filesystem error occurred." << std::endl;
             return 1;
@@ -176,7 +180,7 @@ int main(int argc, char **argv) {
     }
 
     std::cout << "Cleaning up directory..." << std::endl;
-    switch (FileHelper(1, argv)) {
+    switch (FileHelper(1/*, argv*/)) {
         case 1:
             std::cerr << "A filesystem error occurred." << std::endl;
             return 1;
