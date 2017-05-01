@@ -56,23 +56,15 @@ fi
 echo "Beginning download"
 youtube-dl -i -x --download-archive "$dlpath/archive.txt" -o "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
 
-echo "Converting all files to wav format..."
-for i in "$dlpath"/*.m4a; do 
-    mplayer -ao pcm "$i" -ao pcm:file="$i.wav" || { exit 1; }; 
-done
+if [[ `ls "$dlpath"/*.m4a -1 2>/dev/null | wc -l` != 0 ]]; then
+    echo "Converting all m4a files to mp3 format..."
+    for i in "$dlpath"/*.m4a; do
+        newName=`echo "$i" | sed -e 's/m4a/mp3/'` || { exit 1; };
+        ffmpeg -i "$i" -f mp3 "$newName" || { exit 1; };
+    done
+fi
 
-echo "Converting all files to mp3 format..."
-for i in "$dlpath"/*.wav; do
-    lame -h -b 192 "$i" "$i.mp3" || { exit 1; };
-done
-
-echo "Cleaning up directory..."
-for i in "$dlpath"/*.mp3; do
-    x=`echo "$i"|sed -e 's/m4a.wav.mp3/mp3/'` || { exit 1; };
-    mv -u "$i" "$x".tmp || { exit 1; };
-    mv -u "$x".tmp "$x" || { exit 1; };
-done
-
-rm "$dlpath"/*.m4a || { exit 1; };
-rm "$dlpath"/*.m4a.wav || { exit 1; };
+if [[ `ls "$dlpath"/*.m4a -1 2>/dev/null | wc -l` != 0 ]]; then
+    rm "$dlpath"/*.m4a || { exit 1; };
+fi
 
