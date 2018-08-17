@@ -1,9 +1,7 @@
 #!/bin/bash
 
 function invalidArgs(){
-    if [[ "$quiet" -eq 0 ]]; then
-        echo "Invalid number of arguments."
-    fi
+    echo "Invalid number of arguments." >&2
     helpAndExit
     exit 1;
 }
@@ -15,7 +13,7 @@ function helpAndExit(){
         echo "    -m       Create a metadata file which stores the original URL."
         echo "    -u [URL] The URL to use."
         echo "    -d [DIR] The directory to save to."
-        echo "    -q       Suppresses all output."
+        echo "    -q       Suppresses all standard output."
         echo "    -n       Does not generate an m3u playlist file."
     fi
 }
@@ -35,6 +33,27 @@ function convert(){
         rm "$dlpath"/*."$1" || { exit 1; };
     fi
 }
+
+function verifyInstall() {
+    ytdl_verify=0
+    ffmpeg_verify=0
+    command -v youtube-dl >/dev/null 2>&1 || { 
+        ytdl_verify=1
+    }
+    command -v ffmpeg >/dev/null 2>&1 || { 
+        ffmpeg_verify=1
+    }
+
+    if [ $ytdl_verify -eq 1 ] || [ $ffmpeg_verify -eq 1 ]; then
+        echo "This script requires both youtube-dl and ffmpeg to be installed and in the PATH environment variable." >&2
+        echo "Please make sure that they are installed properly before continuing:" >&2
+        echo "  youtube-dl -- https://rg3.github.io/youtube-dl/" >&2
+        echo "  ffmpeg     -- https://www.ffmpeg.org/" >&2
+        exit 1
+    fi
+}
+
+verifyInstall
 
 docreatemeta="0"
 
@@ -70,9 +89,7 @@ if [[ "$url" = "1" ]]; then
     then
         url=`cat "$dlpath"/META.info`
     else
-        if [[ "$quiet" -eq 0 ]]; then
-            echo "Unable to find a META.info file in $dlpath. Please create one with a valid URL in it or specify the URL."
-        fi
+        echo "Unable to find a META.info file in $dlpath. Please create one with a valid URL in it or specify the URL." >&2
         invalidArgs
     fi
 fi
@@ -85,7 +102,9 @@ if [[ "$docreatemeta"  = "1" ]]; then
     echo "$url" > "$dlpath"/META.info
 fi
 
-echo "Beginning download"
+if [[ "$quiet" -eq 0 ]]; then
+    echo "Beginning download"
+fi
 youtube-dl `if [[ "$quiet" -eq 1 ]]; then echo "-q"; fi` -i -x \
                 --download-archive "$dlpath/archive.txt" -o \
                 "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
