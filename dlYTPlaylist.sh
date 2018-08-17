@@ -16,7 +16,6 @@ function helpAndExit(){
         echo "    -u [URL] The URL to use."
         echo "    -d [DIR] The directory to save to."
         echo "    -q       Suppresses all output."
-        echo "    -p       Generate an m3u playlist file (default)."
         echo "    -n       Does not generate an m3u playlist file."
     fi
 }
@@ -59,8 +58,6 @@ for ((index=0; index <= "$#"; index++)); do
         dlpath="${all_args[++index]}"
     elif [[ "$arg" = "-q" ]]; then
         quiet=1
-    elif [[ "$arg" = "-p" ]]; then
-        make_pl=1
     elif [[ "$arg" = "-n" ]]; then
         make_pl=0
     fi
@@ -93,11 +90,11 @@ youtube-dl `if [[ "$quiet" -eq 1 ]]; then echo "-q"; fi` -i -x \
                 --download-archive "$dlpath/archive.txt" -o \
                 "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
 
+convert m4a
+convert opus
+
 if [[ $make_pl -eq 1 ]]; then
     pl_name=$(basename $dlpath)
     ls "$dlpath" | while read line; do echo "$dlpath/$line"; done > $dlpath/$pl_name.m3u
 fi
-
-convert m4a
-convert opus
 
