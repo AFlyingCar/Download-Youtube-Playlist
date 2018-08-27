@@ -44,6 +44,7 @@ function helpMessage() {
         Write-Host "    -u [URL] The URL to use."
         Write-Host "    -d [DIR] The directory to save to."
         Write-Host "    -q       Suppresses all output."
+        Write-Host "    -n       Do not generate an m3u playlist file."
     }
 }
 
@@ -120,12 +121,12 @@ convert m4a
 convert opus
 
 # TODO: Uncomment this when testing on Windows
-# if(!$NoPlaylist) {
-#     Out-File -FilePath $Directory/playlist.m3u
-#              -InputObject Get-ChildItem "$Directory" -Filter *.mp3 *.ogg | Foreach-Object
-#     {
-#         $OutputPath = Get-Content $_.FullName
-#         $content = Split-Path $OutputPath.FullName -leaf
-#     } -Encoding ASCII
-# }
+if(!$NoPlaylist) {
+    $files = Get-ChildItem "$Directory" -Filter *.mp3 *.ogg | Foreach-Object {
+        $OutputPath = Get-Content $_.FullName
+        $content = Split-Path $OutputPath.FullName -leaf
+    }
+
+    Out-File -FilePath "$Directory/playlist.m3u" -InputObject $files -Encoding ASCII
+}
 
