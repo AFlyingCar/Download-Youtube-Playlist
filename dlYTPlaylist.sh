@@ -15,6 +15,7 @@ function helpAndExit(){
         echo "    -d [DIR] The directory to save to."
         echo "    -q       Suppresses all standard output."
         echo "    -n       Does not generate an m3u playlist file."
+        echo "    -v       Enables verbose output."
     fi
 }
 
@@ -26,8 +27,9 @@ function convert(){
 
         for i in "$dlpath"/*."$1"; do
             newName=`echo "$i" | sed -e "s/$1/mp3/"` || { exit 1; };
-            ffmpeg `if [[ "$quiet" -eq 0 ]]; then echo "-loglevel quiet"; fi` -i \
-                "$i" -f mp3 "$newName" || { exit 1; };
+            ffmpeg `if [[ "$quiet" -eq 0 ]]; then echo "-loglevel quiet"; fi` \
+                   `if [[ "$verbose" -eq 1 ]]; then echo "-loglevel verbose"; fi` \
+                   -i "$i" -f mp3 "$newName" || { exit 1; };
         done
 
         rm "$dlpath"/*."$1" || { exit 1; };
@@ -37,10 +39,10 @@ function convert(){
 function verifyInstall() {
     ytdl_verify=0
     ffmpeg_verify=0
-    command -v youtube-dl >/dev/null 2>&1 || { 
+    command -v youtube-dl >/dev/null 2>&1 || {
         ytdl_verify=1
     }
-    command -v ffmpeg >/dev/null 2>&1 || { 
+    command -v ffmpeg >/dev/null 2>&1 || {
         ffmpeg_verify=1
     }
 
@@ -63,6 +65,7 @@ url="1"
 pstart=1
 quiet=0
 make_pl=1
+verbose=0
 
 for ((index=0; index <= "$#"; index++)); do
     arg=${all_args[index]}
@@ -79,6 +82,8 @@ for ((index=0; index <= "$#"; index++)); do
         quiet=1
     elif [[ "$arg" = "-n" ]]; then
         make_pl=0
+    elif [[ "$arg" = "-v" ]]; then
+        verbose=1
     fi
 done
 
@@ -105,9 +110,10 @@ fi
 if [[ "$quiet" -eq 0 ]]; then
     echo "Beginning download"
 fi
-youtube-dl `if [[ "$quiet" -eq 1 ]]; then echo "-q"; fi` -i -x \
-                --download-archive "$dlpath/archive.txt" -o \
-                "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
+youtube-dl `if [[ "$quiet" -eq 1 ]]; then echo "-q"; fi` \
+           `if [[ "$verbose" -eq 1 ]]; then echo "--verbose"; fi` -i -x \
+           --download-archive "$dlpath/archive.txt" -o \
+           "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
 
 convert m4a
 convert opus
