@@ -16,6 +16,10 @@ function helpAndExit(){
         echo "    -q       Suppresses all standard output."
         echo "    -n       Does not generate an m3u playlist file."
         echo "    -v       Enables verbose output."
+        echo "    -s       Perform a dry run, do not download anything or touch the disk."
+        echo "    -Q       Suppresses all notifications and beeps."
+        echo "    -B       Suppresses beeps."
+        echo "    -N       Suppresses notifications."
     fi
 }
 
@@ -55,7 +59,20 @@ function verifyInstall() {
     fi
 }
 
+can_beep=1
+can_notify=1
+
+function verifyNonEssentials() {
+    command -v beep >/dev/null 2>&1 || {
+        can_beep=0
+    }
+    command -v notify-send>/dev/null 2>&1 || {
+        can_notify=0
+    }
+}
+
 verifyInstall
+verifyNonEssentials
 
 docreatemeta="0"
 
@@ -66,6 +83,7 @@ pstart=1
 quiet=0
 make_pl=1
 verbose=0
+isdry=0
 
 for ((index=0; index <= "$#"; index++)); do
     arg=${all_args[index]}
@@ -84,6 +102,15 @@ for ((index=0; index <= "$#"; index++)); do
         make_pl=0
     elif [[ "$arg" = "-v" ]]; then
         verbose=1
+    elif [[ "$arg" = "-s" ]]; then
+        isdry=1
+    elif [[ "$arg" = "-Q" ]]; then
+        can_notify=0
+        can_beep=0
+    elif [[ "$arg" = "-N" ]]; then
+        can_notify=0
+    elif [[ "$arg" = "-B" ]]; then
+        can_beep=0
     fi
 done
 
@@ -110,16 +137,28 @@ fi
 if [[ "$quiet" -eq 0 ]]; then
     echo "Beginning download"
 fi
-youtube-dl `if [[ "$quiet" -eq 1 ]]; then echo "-q"; fi` \
-           `if [[ "$verbose" -eq 1 ]]; then echo "--verbose"; fi` -i -x \
-           --download-archive "$dlpath/archive.txt" -o \
-           "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
 
-convert m4a
-convert opus
+if [[ "$isdry" -eq 0 ]]; then
+    youtube-dl `if [[ "$quiet" -eq 1 ]]; then echo "-q"; fi` \
+               `if [[ "$verbose" -eq 1 ]]; then echo "--verbose"; fi` -i -x \
+               --download-archive "$dlpath/archive.txt" -o \
+               "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
+
+    convert m4a
+    convert opus
+fi
 
 if [[ $make_pl -eq 1 ]]; then
     pl_name=$(basename $dlpath)
     ls "$dlpath" | while read line; do echo "$dlpath/$line"; done > $dlpath/$pl_name.m3u
+
+fi
+
+if [[ "$can_notify" -eq 1 ]]; then
+    notify-send --urgency=low "$(basename "$0"): Download Complete"
+fi
+
+if [[ "$can_beep" -eq 1 ]]; then
+    beep -f 750 -n -f 1000
 fi
 
