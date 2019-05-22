@@ -29,6 +29,18 @@ Param(
     [Parameter(HelpMessage="Do not download anything.")]
         [alias("nd")]
         [switch]$NoDownload=$false
+    [Parameter(HelpMessage="Perform a dry run, do not download anything or touch the disk.")]
+        [alias("s")]
+        [switch]$DryRun=$false
+    [Parameter(HelpMessage="Suppresses all notifications and beeps.")]
+        [alias("Q")]
+        [switch]$SuppressAllNotifications=$false
+    [Parameter(HelpMessage="Suppresses beeps.")]
+        [alias("B")]
+        [switch]$SupressBeeps=$false
+    [Parameter(HelpMessage="Suppresses notifications.")]
+        [alias("N")]
+        [switch]$SuppressNotifications=$false
 )
 
 function invalidArgs() {
@@ -87,7 +99,44 @@ function verifyInstall() {
     }
 }
 
+# Grabbed from here: http://www.powertheshell.com/balloontip/
+function Show-BalloonTip  
+{
+  [CmdletBinding(SupportsShouldProcess = $true)]
+  param
+  (
+    [Parameter(Mandatory=$true)]
+    $Text,
+    [Parameter(Mandatory=$true)]
+    $Title,
+    [ValidateSet('None', 'Info', 'Warning', 'Error')]
+    $Icon = 'Info',
+    $Timeout = 10000
+  )
+ 
+  Add-Type -AssemblyName System.Windows.Forms
+  if ($script:balloon -eq $null) {
+    $script:balloon = New-Object System.Windows.Forms.NotifyIcon
+  }
+
+  $path                    = Get-Process -id $pid | Select-Object -ExpandProperty Path
+  $balloon.Icon            = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
+  $balloon.BalloonTipIcon  = $Icon
+  $balloon.BalloonTipText  = $Text
+  $balloon.BalloonTipTitle = $Title
+  $balloon.Visible         = $true
+
+  $balloon.ShowBalloonTip($Timeout)
+}
+
 verifyInstall
+
+# This functionality is disabled by default in Windows
+#   Note, if we can, we should try to find a way around it
+#   And yes, I know [System.Console]::Beep exists, but it sounds terrible
+$CanBeep=$false
+
+$CanNotify=-not ($SuppressNotifications -or $SuppressAllNotifications)
 
 if($Help) {
     helpMessage
@@ -118,16 +167,18 @@ if($CreateMetaFile) {
     Out-File -FilePath $Directory/META.info -InputObject $URL -Encoding ASCII
 }
 
-if(!$NoDownload) {
+if(!$NoDownload -or !$DryRun) {
     if(!$Quiet) {
         Write-Host "Beginning download."
     }
     youtube-dl (&{If($Quiet) { "-q" }}) -i -x --download-archive "$Directory/archive.txt" -o "$Directory/%(title)s-v=%(id)s.%(ext)s" "$URL"
 }
 
-convert ogg
-convert m4a
-convert opus
+if(!$DryRun) {
+    convert ogg
+    convert m4a
+    convert opus
+}
 
 if(!$NoPlaylist) {
     if(!$Quiet) {
@@ -136,5 +187,9 @@ if(!$NoPlaylist) {
     $files = Get-ChildItem "$Directory" -Filter *.mp3 | Foreach-Object { $_.Name }
 
     Out-File -FilePath "$Directory/playlist.m3u" -InputObject $files -Encoding UTF8
+}
+
+if($CanNotify) {
+    ShowBalloonTip -Title $MyInvocation.MyCommand.Name -Text "Download Complete" -Icon Info -Timeout 500
 }
 
