@@ -20,6 +20,7 @@ function helpAndExit(){
         echo "    -Q       Suppresses all notifications and beeps."
         echo "    -B       Suppresses beeps."
         echo "    -N       Suppresses notifications."
+        echo "    -nd      Do not download anything."
     fi
 }
 
@@ -84,6 +85,7 @@ quiet=0
 make_pl=1
 verbose=0
 isdry=0
+no_download=0
 
 for ((index=0; index <= "$#"; index++)); do
     arg=${all_args[index]}
@@ -111,6 +113,8 @@ for ((index=0; index <= "$#"; index++)); do
         can_notify=0
     elif [[ "$arg" = "-B" ]]; then
         can_beep=0
+    elif [[ "$arg" = "-nd" ]]; then
+        no_download=1
     fi
 done
 
@@ -139,10 +143,12 @@ if [[ "$quiet" -eq 0 ]]; then
 fi
 
 if [[ "$isdry" -eq 0 ]]; then
-    youtube-dl `if [[ "$quiet" -eq 1 ]]; then echo "-q"; fi` \
-               `if [[ "$verbose" -eq 1 ]]; then echo "--verbose"; fi` -i -x \
-               --download-archive "$dlpath/archive.txt" -o \
-               "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
+    if [[ "$no_download" -eq 0 ]]; then
+        youtube-dl `if [[ "$quiet" -eq 1 ]]; then echo "-q"; fi` \
+                   `if [[ "$verbose" -eq 1 ]]; then echo "--verbose"; fi` -i -x \
+                   --download-archive "$dlpath/archive.txt" -o \
+                   "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
+    fi
 
     convert m4a
     convert opus
