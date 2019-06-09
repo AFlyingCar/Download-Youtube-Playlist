@@ -28,18 +28,18 @@ Param(
         [switch]$NoPlaylist=$false,
     [Parameter(HelpMessage="Do not download anything.")]
         [alias("nd")]
-        [switch]$NoDownload=$false
+        [switch]$NoDownload=$false,
     [Parameter(HelpMessage="Perform a dry run, do not download anything or touch the disk.")]
         [alias("s")]
-        [switch]$DryRun=$false
-    [Parameter(HelpMessage="Suppresses all notifications and beeps.")]
-        [alias("Q")]
-        [switch]$SuppressAllNotifications=$false
+        [switch]$DryRun=$false,
+    #[Parameter(HelpMessage="Suppresses all notifications and beeps.")]
+        #[alias("Q")]
+        #[switch]$SuppressAllNotifications=$false,
     [Parameter(HelpMessage="Suppresses beeps.")]
         [alias("B")]
-        [switch]$SupressBeeps=$false
+        [switch]$SupressBeeps=$false,
     [Parameter(HelpMessage="Suppresses notifications.")]
-        [alias("N")]
+        #[alias("N")]
         [switch]$SuppressNotifications=$false
     [Parameter(HelpMessage="Do not ask before overwriting already existing files.")]
         [alias("na")]
