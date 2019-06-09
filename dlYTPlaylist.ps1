@@ -41,6 +41,9 @@ Param(
     [Parameter(HelpMessage="Suppresses notifications.")]
         [alias("N")]
         [switch]$SuppressNotifications=$false
+    [Parameter(HelpMessage="Do not ask before overwriting already existing files.")]
+        [alias("na")]
+        [switch]$NoAskOverwrite=$false
 )
 
 function invalidArgs() {
@@ -56,12 +59,18 @@ function helpMessage() {
     if(!$Quiet) {
         Write-Host "dlYTPlaylist [OPTIONS]"
         Write-Host "A powershell script which downloads and maintains playlists of music."
-        Write-Host "    -h,-Help              Display this message and exit."
-        Write-Host "    -m,-CreateMetaFile    Create a metadata file which stores the original URL."
-        Write-Host "    -u,-URL [URL]         The URL to use."
-        Write-Host "    -d,-Directory [DIR]   The directory to save to."
-        Write-Host "    -q,-Quiet             Suppresses all output."
-        Write-Host "    -n,-NoPlaylist        Do not generate an m3u playlist file."
+        Write-Host "    -h,-Help                     Display this message and exit."
+        Write-Host "    -m,-CreateMetaFile           Create a metadata file which stores the original URL."
+        Write-Host "    -u,-URL [URL]                The URL to use."
+        Write-Host "    -d,-Directory [DIR]          The directory to save to."
+        Write-Host "    -q,-Quiet                    Suppresses all output."
+        Write-Host "    -n,-NoPlaylist               Do not generate an m3u playlist file."
+        Write-Host "    -s,-DryRun                   Perform a dry run, do not download anything or touch the disk."
+        Write-Host "    -Q,-SuppressAllNotifications Suppresses all notifications and beeps."
+        Write-Host "    -B,-SupressBeeps             Suppresses beeps."
+        Write-Host "    -N,-SuppressNotifications    Suppresses notifications."
+        Write-Host "    -nd,-NoDownload              Do not download anything."
+        Write-Host "    -na,-NoAskOverwrite          Do not ask before overwriting already existing files."
         Write-Host ""
         Write-Host "https://github.com/AFlyingCar/Download-Youtube-Playlist"
     }
@@ -81,7 +90,7 @@ function convert() {
     foreach($i in $files) {
         $newname = ($i -replace "$Type","mp3")
 
-        ffmpeg (&{If($Quiet) { "-loglevel quiet" }}) -i "$Directory/$i" -f mp3 "$Directory/$newname"
+        ffmpeg (&{If($Quiet) { "-loglevel quiet" }}) (&{If($NoAskOverwrite) { "-n" }}) -i "$Directory/$i" -f mp3 "$Directory/$newname"
     }
 
     Remove-Item $Directory/*.$Type
