@@ -21,6 +21,7 @@ function helpAndExit(){
         echo "    -B       Suppresses beeps."
         echo "    -N       Suppresses notifications."
         echo "    -nd      Do not download anything."
+        echo "    -na      Do not ask before overwriting already existing files."
     fi
 }
 
@@ -34,6 +35,7 @@ function convert(){
             newName=`echo "$i" | sed -e "s/$1/mp3/"` || { exit 1; };
             ffmpeg `if [[ "$quiet" -eq 0 ]]; then echo "-loglevel quiet"; fi` \
                    `if [[ "$verbose" -eq 1 ]]; then echo "-loglevel verbose"; fi` \
+                   `if [[ "$no_ask" -eq 1 ]]; then echo "-n"; fi` \
                    -i "$i" -f mp3 "$newName" || { exit 1; };
         done
 
@@ -86,6 +88,7 @@ make_pl=1
 verbose=0
 isdry=0
 no_download=0
+no_ask=0
 
 for ((index=0; index <= "$#"; index++)); do
     arg=${all_args[index]}
@@ -115,6 +118,8 @@ for ((index=0; index <= "$#"; index++)); do
         can_beep=0
     elif [[ "$arg" = "-nd" ]]; then
         no_download=1
+    elif [[ "$arg" = "-na" ]]; then
+        no_ask=1
     fi
 done
 
@@ -147,7 +152,7 @@ if [[ "$isdry" -eq 0 ]]; then
         youtube-dl `if [[ "$quiet" -eq 1 ]]; then echo "-q"; fi` \
                    `if [[ "$verbose" -eq 1 ]]; then echo "--verbose"; fi` -i -x \
                    --download-archive "$dlpath/archive.txt" -o \
-                   "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url" # || { exit 1; };
+                   "$dlpath/%(title)s-v=%(id)s.%(ext)s" "$url"
     fi
 
     convert m4a
