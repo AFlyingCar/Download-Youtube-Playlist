@@ -161,7 +161,7 @@ fi
 
 if [[ $make_pl -eq 1 ]]; then
     pl_name=$(basename $dlpath)
-    ls "$dlpath" | while read line; do echo "$dlpath/$line"; done > $dlpath/$pl_name.m3u
+    ls "$dlpath"/*.mp3 | while read line; do echo ${line#"$dlpath/"}; done > $dlpath/$pl_name.m3u8
 
 fi
 

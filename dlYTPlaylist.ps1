@@ -195,7 +195,7 @@ if(!$NoPlaylist) {
     }
     $files = Get-ChildItem "$Directory" -Filter *.mp3 | Foreach-Object { $_.Name }
 
-    Out-File -FilePath "$Directory/playlist.m3u" -InputObject $files -Encoding UTF8
+    Out-File -FilePath "$Directory/playlist.m3u8" -InputObject $files -Encoding UTF8
 }
 
 if($CanNotify) {
